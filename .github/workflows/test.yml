@@ -1,0 +1,23 @@
+name: test
+on: [push, pull_request]
+jobs:
+  hook:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bash hook
+        run: bash tests/hook-test.sh
+      - name: PowerShell 7 hook
+        run: HOOK_PS=pwsh bash tests/hook-test.sh
+      - name: Windows PowerShell 5.1 hook
+        if: runner.os == 'Windows'
+        run: HOOK_PS=powershell bash tests/hook-test.sh
+      - name: hooks.json command under every shell
+        run: bash tests/dual-shell-test.sh

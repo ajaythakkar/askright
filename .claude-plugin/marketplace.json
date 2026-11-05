@@ -1,0 +1,14 @@
+{
+  "name": "askright-marketplace",
+  "owner": {
+    "name": "Ajay Thakkar"
+  },
+  "plugins": [
+    {
+      "name": "askright",
+      "source": "./",
+      "description": "Rates every prompt and suggests 3 better versions before Claude runs it. Toggle with /askright on|off."
+    }
+  ],
+  "description": "Prompt rewriter plugin for Claude Code"
+}

@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: natural-language-review-request
+expected_outcome: |
+  Claude reviews the quoted prompt rather than starting to add caching: it gives a rubric-based score and offers improved versions plus the original.

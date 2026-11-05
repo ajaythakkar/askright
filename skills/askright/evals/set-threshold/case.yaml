@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: set-threshold
+expected_outcome: |
+  Claude sets threshold=70 in the askright.conf settings file, keeping any other settings, and confirms in one short line.
