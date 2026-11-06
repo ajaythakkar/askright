@@ -1,6 +1,27 @@
 # askright
 
-Always-on, silent prompt rewrite for Claude Code. Clear prompts run as usual with nothing extra on screen. Prompts that would make Claude guess get sharper versions to pick from before any work starts.
+**Stop wasting turns on vague prompts.** askright spots what your prompt is missing before your AI coding agent starts guessing, and offers sharper rewrites in one click. Clear prompts run untouched.
+
+[![tests](https://github.com/ajaythakkar/askright/actions/workflows/test.yml/badge.svg)](https://github.com/ajaythakkar/askright/actions/workflows/test.yml)
+[![release](https://img.shields.io/github/v/release/ajaythakkar/askright)](https://github.com/ajaythakkar/askright/releases)
+[![license: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![skills.sh](https://img.shields.io/badge/skills.sh-askright-black)](https://skills.sh/ajaythakkar/askright/askright)
+![works with](https://img.shields.io/badge/works%20with-Claude%20Code%20·%20Codex%20·%20OpenCode-8A2BE2)
+
+<!-- Demo GIF: record ~15 s (vague prompt -> picker -> Running: quote -> result), save as docs/demo.gif, then uncomment:
+![askright demo](docs/demo.gif)
+-->
+
+**Install in Claude Code** (then restart it):
+
+```
+/plugin marketplace add ajaythakkar/askright
+/plugin install askright@askright-marketplace
+```
+
+Other agents: [Codex](#openai-codex-cli-always-on-review-beta), [OpenCode](#opencode-always-on-review-beta), or any agent that reads skills: `npx skills add ajaythakkar/askright`.
+
+**What you get:** clear prompts run as usual with nothing extra on screen. Prompts that would make Claude guess (which file? what's wrong? what does done mean?) get a picker first:
 
 ```
 > fix the design issue in header
@@ -21,7 +42,7 @@ Missing: what looks wrong · done-check · constraints. Which prompt should I ru
 - **Replies and questions are never rewritten:** "ok do it", "yes please continue", "option 2", "haan kar do", "what does this function do?".
 - **Any language:** rewrites come back in the language you wrote in. Tested with English, Hinglish, Hindi, Chinese and Japanese prompts; short replies such as "oui, merci", "sí, dale", "ja, mach weiter", "tamam devam", "да" or "好的" are recognised and never reviewed.
 - **Not just code:** the Detailed rewrite picks labels that fit the task. Code gets `Goal / Files / Current behaviour / Steps / Constraints / Done when`; design gets `Goal / Screen / Audience / Style / References / Done when`; writing gets `Goal / Audience / Tone / Length / Must include / Done when`; data gets `Goal / Data / Question / Method / Output / Done when`.
-- **Works in Claude Code, Codex and OpenCode** automatically, and as an on-demand skill in Cursor, Gemini CLI, claude.ai and other agents that read `SKILL.md`.
+- **Works in Claude Code** automatically (Codex and OpenCode in beta), and as an on-demand skill in Cursor, Gemini CLI, claude.ai and other agents that read `SKILL.md`.
 
 ## Before and after
 
@@ -120,7 +141,7 @@ claude plugin install askright@askright-marketplace
 
 Restart Claude Code afterwards.
 
-### OpenAI Codex CLI (always-on review)
+### OpenAI Codex CLI (always-on review, beta)
 
 Codex has the same `SessionStart` and `UserPromptSubmit` hooks, so askright runs the same scripts there:
 
@@ -130,7 +151,7 @@ git clone https://github.com/ajaythakkar/askright && sh askright/integrations/co
 
 The script copies the hooks to `~/.codex/askright/`, writes `~/.codex/hooks.json` (or prints the two entries to add if you already have one), and installs the skill to `~/.agents/skills/askright`. Start `codex`, open `/hooks` and trust the two askright hooks. Codex has no picker dialog, so the rewrites come as a numbered list: reply with a number. No band.
 
-### OpenCode (always-on review)
+### OpenCode (always-on review, beta)
 
 ```
 git clone https://github.com/ajaythakkar/askright && sh askright/integrations/opencode/install.sh
@@ -195,3 +216,7 @@ claude --plugin-dir . -p "fix the header"   # try it without installing
 ## License
 
 MIT
+
+---
+
+If askright saved you a turn, a ⭐ on [GitHub](https://github.com/ajaythakkar/askright) helps other developers find it.

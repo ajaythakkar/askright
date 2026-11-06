@@ -104,14 +104,55 @@ if ($words.Count -eq 0 -and [System.Text.Encoding]::UTF8.GetByteCount($trimmed) 
 if ($kind -eq 'review' -and $replyOnly -and $words.Count -le 8) { exit 0 }
 
 # ---- Project context: one git call, read-only ---------------------------------
-# A repo's own config can make `git status` run commands (core.fsmonitor), so turn
-# that off; GIT_OPTIONAL_LOCKS=0 keeps the hook from touching the index.
+# A repo's own config can make `git status` run commands: core.fsmonitor (turned off
+# below), clean/process filter drivers on changed files, and config pulled in with
+# include. When the repo config has a [filter or [include section, skip git and read
+# the branch from HEAD. Submodules are ignored, since their configs are not checked.
+# GIT_OPTIONAL_LOCKS=0 keeps the hook from touching the index.
 # Repo text (branch, file names) is data: no control characters, capped.
 function Clean([string]$t, [int]$n) { $t = $t -replace '[\x00-\x1f\x7f]', ''; if ($t.Length -gt $n) { $t = $t.Substring(0, $n) }; $t }
 $ctx = 'dir ' + (Clean (Split-Path -Leaf $cwd) 60)
-if (Get-Command git -ErrorAction SilentlyContinue) {
+function Risky([string]$f) {
+  if (-not (Test-Path -LiteralPath $f -PathType Leaf)) { return $false }
+  foreach ($l in @(Get-Content -LiteralPath $f -ErrorAction SilentlyContinue)) { if ([string]$l -match '\[(filter|include)') { return $true } }
+  return $false
+}
+function Abs([string]$base, [string]$rel) { if ($rel -match '^(/|\\|[A-Za-z]:)') { $rel } else { Join-Path $base $rel } }
+$gitDir = ''; $gitSafe = $true
+$d = $cwd
+while ($d) {
+  if (Test-Path -LiteralPath (Join-Path $d '.git')) { $gitDir = Join-Path $d '.git'; break }
+  $parent = Split-Path -Parent $d
+  if (-not $parent -or $parent -eq $d) { break }
+  $d = $parent
+}
+if ($gitDir) {
+  if (Test-Path -LiteralPath $gitDir -PathType Leaf) {
+    # A worktree or submodule: .git is a file naming the real git dir.
+    $g = ([string](@(Get-Content -LiteralPath $gitDir -TotalCount 1)[0])) -replace '^gitdir: ', ''
+    $gitDir = Abs $d $g
+  }
+  if (Risky (Join-Path $gitDir 'config')) { $gitSafe = $false }
+  if (Risky (Join-Path $gitDir 'config.worktree')) { $gitSafe = $false }
+  $cf = Join-Path $gitDir 'commondir'
+  if (Test-Path -LiteralPath $cf -PathType Leaf) {
+    $c = Abs $gitDir ([string](@(Get-Content -LiteralPath $cf -TotalCount 1)[0]))
+    if ((Risky (Join-Path $c 'config')) -or (Risky (Join-Path $c 'config.worktree'))) { $gitSafe = $false }
+  }
+}
+$haveGit = [bool](Get-Command git -ErrorAction SilentlyContinue)
+if (-not $gitSafe -or $haveGit) {
   $env:GIT_OPTIONAL_LOCKS = '0'
-  $status = @(& git -c core.fsmonitor=false -c core.untrackedCache=false -C $cwd status --short --branch 2>$null)
+  if ($gitSafe) {
+    $status = @(& git -c core.fsmonitor=false -c core.untrackedCache=false -C $cwd status --short --branch --ignore-submodules=all 2>$null)
+  } else {
+    $status = @()
+    $hf = Join-Path $gitDir 'HEAD'
+    if (Test-Path -LiteralPath $hf -PathType Leaf) {
+      $h = [string](@(Get-Content -LiteralPath $hf -TotalCount 1)[0])
+      if ($h.StartsWith('ref: refs/heads/')) { $status = @('## ' + $h.Substring(16)) }
+    }
+  }
   $branch = ''; $changed = @()
   foreach ($line in $status) {
     $line = [string]$line

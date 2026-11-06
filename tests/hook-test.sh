@@ -151,6 +151,28 @@ EVIL="$TMP/evil"; command -v cygpath >/dev/null 2>&1 && EVIL="$(cygpath -m "$EVI
 json "fix header" "$EVIL" | hook >/dev/null
 if [ -e "$TMP/pwned" ]; then bad "core.fsmonitor from the repo config ran"; else ok; fi
 
+# A repo's clean filter must not run either: `git status` runs it on stat-dirty files.
+# The hook skips git when the repo config has a [filter or [include section and still
+# reads the branch from HEAD, also from a subfolder.
+mkdir -p "$TMP/evil2/sub"
+( cd "$TMP/evil2" && git init -q && git symbolic-ref HEAD refs/heads/evilbranch \
+  && echo '* filter=evil' > .gitattributes && echo abc > f.txt \
+  && git -c user.name=t -c user.email=t@t add -A && git -c user.name=t -c user.email=t@t commit -qm x \
+  && git config filter.evil.clean "touch '$TMP/pwned2'; cat" && sleep 1 && touch f.txt ) 2>/dev/null
+EVIL2="$TMP/evil2"; command -v cygpath >/dev/null 2>&1 && EVIL2="$(cygpath -m "$EVIL2")"
+out="$(json "fix header" "$EVIL2/sub" | hook)"
+if [ -e "$TMP/pwned2" ]; then bad "filter.*.clean from the repo config ran"; else ok; fi
+if printf '%s' "$out" | grep -qF "branch evilbranch"; then ok; else bad "branch not read from HEAD in a filter repo"; fi
+# Sanity: git status itself does run that filter, so the test above means something.
+( cd "$TMP/evil2" && git status --short >/dev/null 2>&1 )
+if [ -e "$TMP/pwned2" ]; then ok; else bad "test setup: plain git status did not run the filter"; fi
+
+# [include] in the repo config also skips git.
+mkdir -p "$TMP/evil3"
+( cd "$TMP/evil3" && git init -q && printf '[include]\n\tpath = x\n' >> .git/config && echo y > g.txt ) 2>/dev/null
+EVIL3="$TMP/evil3"; command -v cygpath >/dev/null 2>&1 && EVIL3="$(cygpath -m "$EVIL3")"
+if json "fix header" "$EVIL3" | hook | grep -qF "g.txt"; then bad "git ran in a repo whose config has [include]"; else ok; fi
+
 rm -rf "$TMP"
 echo "${HOOK_PS:-${HOOK_SH:-sh}}: passed $pass, failed $fail"
 [ "$fail" -eq 0 ]

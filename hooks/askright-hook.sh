@@ -125,11 +125,51 @@ cwd="${parsed#"$kind"
 export ASKRIGHT_CWD="$cwd" ASKRIGHT_KIND="$kind"
 
 # ---- Project context: one git call, read-only --------------------------------
-# A repo's own config can make `git status` run commands (core.fsmonitor), so turn
-# that off; GIT_OPTIONAL_LOCKS=0 keeps the hook from touching the index.
+# A repo's own config can make `git status` run commands: core.fsmonitor (turned off
+# below), clean/process filter drivers on changed files, and config pulled in with
+# include. Find the repo with shell builtins only (no extra process); when its
+# config has a [filter or [include section, skip git and read the branch from HEAD.
+# Submodules are ignored, since their configs are not checked. GIT_OPTIONAL_LOCKS=0
+# keeps the hook from touching the index.
+askright_risky() {
+  [ -f "$1" ] || return 1
+  while IFS= read -r l || [ -n "$l" ]; do
+    case "$l" in *\[[Ff][Ii][Ll][Tt][Ee][Rr]*|*\[[Ii][Nn][Cc][Ll][Uu][Dd][Ee]*) return 0 ;; esac
+  done < "$1"
+  return 1
+}
+gitrepo=; gitdir=; gitsafe=yes
+d="$cwd"
+while :; do
+  if [ -e "$d/.git" ]; then gitrepo="$d"; break; fi
+  p="${d%[/\\]*}"
+  if [ -z "$p" ] || [ "$p" = "$d" ]; then break; fi
+  d="$p"
+done
+if [ -n "$gitrepo" ]; then
+  gitdir="$gitrepo/.git"
+  if [ -f "$gitdir" ]; then
+    # A worktree or submodule: .git is a file naming the real git dir.
+    IFS= read -r g < "$gitdir" || :
+    g="${g#gitdir: }"
+    case "$g" in /*|[A-Za-z]:*) ;; *) g="$gitrepo/$g" ;; esac
+    gitdir="$g"
+  fi
+  askright_risky "$gitdir/config" && gitsafe=no
+  if [ -f "$gitdir/commondir" ]; then
+    IFS= read -r c < "$gitdir/commondir" || :
+    case "$c" in /*|[A-Za-z]:*) ;; *) c="$gitdir/$c" ;; esac
+    askright_risky "$c/config" && gitsafe=no
+    askright_risky "$c/config.worktree" && gitsafe=no
+  fi
+  askright_risky "$gitdir/config.worktree" && gitsafe=no
+fi
 {
-  if command -v git >/dev/null 2>&1; then
-    GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false -c core.untrackedCache=false -C "$cwd" status --short --branch 2>/dev/null
+  if [ "$gitsafe" = no ]; then
+    h=; IFS= read -r h < "$gitdir/HEAD" 2>/dev/null || :
+    case "$h" in "ref: refs/heads/"*) printf '## %s\n' "${h#ref: refs/heads/}" ;; esac
+  elif command -v git >/dev/null 2>&1; then
+    GIT_OPTIONAL_LOCKS=0 git -c core.fsmonitor=false -c core.untrackedCache=false -C "$cwd" status --short --branch --ignore-submodules=all 2>/dev/null
   fi
 } | LC_ALL=C awk "$AWK_LIB"'
 # Repo text (branch, file names) is data: no control characters, capped.

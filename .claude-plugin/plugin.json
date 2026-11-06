@@ -1,6 +1,6 @@
 {
   "name": "askright",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Always-on, silent prompt rewrite. One switch: on, auto or off. In auto, clear prompts run straight away; prompts that would make Claude guess get 3 context-aware rewrites (best match, short, detailed) or your original. No scores. Switch from the band above the prompt or with /askright on|auto|off.",
   "author": {
     "name": "Ajay Thakkar",
