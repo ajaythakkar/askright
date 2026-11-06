@@ -12,12 +12,36 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Bash hook
+      - name: sh hook
         run: bash tests/hook-test.sh
+      - name: dash hook
+        if: runner.os == 'Linux'
+        run: HOOK_SH=dash bash tests/hook-test.sh
       - name: PowerShell 7 hook
         run: HOOK_PS=pwsh bash tests/hook-test.sh
       - name: Windows PowerShell 5.1 hook
         if: runner.os == 'Windows'
         run: HOOK_PS=powershell bash tests/hook-test.sh
-      - name: hooks.json command under every shell
+      - name: sh and PowerShell hooks match
+        run: bash tests/parity-test.sh
+      - name: Windows PowerShell 5.1 matches sh
+        if: runner.os == 'Windows'
+        run: HOOK_PS=powershell bash tests/parity-test.sh
+      - name: hooks.json commands under every shell
         run: bash tests/dual-shell-test.sh
+      - name: Codex and OpenCode installers
+        run: bash tests/integrations-test.sh
+  busybox:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hook under busybox sh (no bash)
+        run: |
+          apk add --no-cache git
+          tmp=$(mktemp -d)
+          out=$(printf '{"prompt":"fix the header","cwd":"%s"}' "$PWD" | CLAUDE_CONFIG_DIR=$tmp sh hooks/askright-hook.sh)
+          echo "$out"
+          echo "$out" | grep -q '"additionalContext":"\[askright\] mode'
+          out=$(printf '{}' | CLAUDE_CONFIG_DIR=$tmp sh hooks/askright-hook.sh session)
+          echo "$out" | grep -q 'askright is active'

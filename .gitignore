@@ -1,0 +1,20 @@
+# Build output and eval runs
+dist/
+skills/askright/evals/results/
+
+# Local notes and agent settings (not published)
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+*.local.json
+.env
+.env.*
+
+# Editor, OS and temp files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+node_modules/

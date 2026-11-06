@@ -1,0 +1,19 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  skill:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build askright.skill (for claude.ai and the desktop app)
+        run: |
+          mkdir -p dist
+          cd skills && zip -r ../dist/askright.skill askright -x 'askright/evals/*'
+      - name: Attach to the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/askright.skill --generate-notes || gh release upload "$GITHUB_REF_NAME" dist/askright.skill --clobber

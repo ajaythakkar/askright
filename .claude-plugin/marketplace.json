@@ -7,7 +7,8 @@
     {
       "name": "askright",
       "source": "./",
-      "description": "Rates every prompt and suggests 3 better versions before Claude runs it. Toggle with /askright on|off."
+      "description": "Silently checks every prompt and suggests 3 sharper versions when it would make Claude guess. No scores. Switch with /askright on|auto|off or the band above the prompt.",
+      "version": "2.1.0"
     }
   ],
   "description": "Prompt rewriter plugin for Claude Code"

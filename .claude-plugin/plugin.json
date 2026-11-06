@@ -1,15 +1,19 @@
 {
   "name": "askright",
-  "version": "1.3.0",
-  "description": "Scores every prompt (0-100%) before Claude runs it. Clear prompts run straight away; vague ones get 3 context-aware rewrites (short, detailed, best match) or your original. Toggle with /askright on|off.",
+  "version": "2.1.0",
+  "description": "Always-on, silent prompt rewrite. One switch: on, auto or off. In auto, clear prompts run straight away; prompts that would make Claude guess get 3 context-aware rewrites (best match, short, detailed) or your original. No scores. Switch from the band above the prompt or with /askright on|auto|off.",
   "author": {
-    "name": "Ajay Thakkar"
+    "name": "Ajay Thakkar",
+    "url": "https://github.com/ajaythakkar"
   },
   "keywords": [
     "prompt",
     "rewrite",
-    "score",
+    "prompt-engineering",
     "hooks"
   ],
-  "license": "MIT"
+  "types": "./hooks/band/types.d.ts",
+  "license": "MIT",
+  "homepage": "https://github.com/ajaythakkar/askright",
+  "repository": "https://github.com/ajaythakkar/askright"
 }

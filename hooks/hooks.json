@@ -1,13 +1,25 @@
 {
-  "description": "Runs the bash hook under bash (macOS, Linux, WSL, Windows with Git Bash) and the PowerShell hook under PowerShell (Windows without Git Bash). The command is valid in both shells.",
+  "description": "Each command is valid in both POSIX sh and PowerShell. sh (macOS, Linux, WSL, containers, Windows with Git Bash) runs askright-hook.sh in its own process with `.` (no second shell to start, which costs about 1 s on Git Bash); PowerShell (Windows without Git Bash) runs askright-hook.ps1. Both print hookSpecificOutput JSON, so nothing shows in the terminal.",
+  "modules": ["./band/register.tsx"],
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd `# <#`; ASKRIGHT_ARG=session . \"${CLAUDE_PLUGIN_ROOT}/hooks/askright-hook.sh\"; exit $?\n#>\n$r = \"${CLAUDE_PLUGIN_ROOT}\"; if (-not $r) { $r = $env:CLAUDE_PLUGIN_ROOT }; . (Join-Path $r \"hooks/askright-hook.ps1\") session",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "cd `# <#`; bash \"${CLAUDE_PLUGIN_ROOT}/hooks/askright-hook.sh\"; exit $?\n#>\n$r = \"${CLAUDE_PLUGIN_ROOT}\"; if (-not $r) { $r = $env:CLAUDE_PLUGIN_ROOT }; . (Join-Path $r \"hooks/askright-hook.ps1\")",
-            "timeout": 10
+            "command": "cd `# <#`; . \"${CLAUDE_PLUGIN_ROOT}/hooks/askright-hook.sh\"; exit $?\n#>\n$r = \"${CLAUDE_PLUGIN_ROOT}\"; if (-not $r) { $r = $env:CLAUDE_PLUGIN_ROOT }; . (Join-Path $r \"hooks/askright-hook.ps1\")",
+            "timeout": 30
           }
         ]
       }

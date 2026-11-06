@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: hinglish-prompt-review
+expected_outcome: |
+  Claude names what the Hinglish prompt is missing without any score, and writes the rewrites in the same Hinglish style, with [placeholders] for the unknown error and file.

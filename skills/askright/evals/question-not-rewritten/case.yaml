@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: question-not-rewritten
+expected_outcome: |
+  Claude answers the question about prompt rewriting tools directly; it does not run the askright review, show a Missing: line or offer Best match, Short, Detailed or Skip, use mine options.

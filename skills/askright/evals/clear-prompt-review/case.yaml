@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: clear-prompt-review
+expected_outcome: |
+  The prompt is already specific. Claude still shows the picker because /askright was called explicitly, says it is clear as written (or names at most one small missing part), and the Best match keeps the user's file, function and test command unchanged.

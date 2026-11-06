@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: rewrite-paragraph-is-not-a-review
+expected_outcome: |
+  Claude treats this as an ordinary editing task: it returns a friendlier version of the paragraph and does not review the request or offer prompt rewrites.
